@@ -171,6 +171,54 @@ public class SwrveQAUser
         }
     }
 
+    public void Trigger (string eventName, SwrveConversation conversationShown, Dictionary<int, string> campaignReasons, Dictionary<int, int> campaignMessages)
+    {
+        try {
+            if (CanMakeTriggerRequest ()) {
+                String endpoint = loggingUrl + "/talk/game/" + swrve.ApiKey + "/user/" + swrve.UserId + "/trigger";
+                Dictionary<string, object> triggerJson = new Dictionary<string, object> ();
+                triggerJson.Add ("trigger_name", eventName);
+                triggerJson.Add ("displayed", (conversationShown != null));
+                triggerJson.Add ("reason", (conversationShown == null) ? "The loaded campaigns returned no conversation" : string.Empty);
+
+                // Add campaigns that were not displayed
+                IList<object> campaignsJson = new List<object> ();
+                Dictionary<int, string>.Enumerator campaignIt = campaignReasons.GetEnumerator ();
+                while (campaignIt.MoveNext()) {
+                    int campaignId = campaignIt.Current.Key;
+                    String reason = campaignIt.Current.Value;
+
+                    int? conversationId = null;
+                    if (campaignMessages.ContainsKey (campaignId)) {
+                        conversationId = campaignMessages [campaignId];
+                    }
+
+                    Dictionary<string, object> campaignInfo = new Dictionary<string, object> ();
+                    campaignInfo.Add ("id", campaignId);
+                    campaignInfo.Add ("displayed", false);
+                    campaignInfo.Add ("conversation_id", (conversationId == null) ? -1 : conversationId);
+                    campaignInfo.Add ("reason", (reason == null) ? string.Empty : reason);
+                    campaignsJson.Add (campaignInfo);
+                }
+
+                // Add campaign that was shown, if available
+                if (conversationShown != null) {
+                    Dictionary<string, object> campaignInfo = new Dictionary<string, object> ();
+                    campaignInfo.Add ("id", conversationShown.Id);
+                    campaignInfo.Add ("displayed", true);
+                    campaignInfo.Add ("conversation_id", conversationShown.Id);
+                    campaignInfo.Add ("reason", string.Empty);
+                    campaignsJson.Add (campaignInfo);
+                }
+                triggerJson.Add ("campaigns", campaignsJson);
+
+                MakeRequest (endpoint, triggerJson);
+            }
+        } catch (Exception exp) {
+            SwrveLog.LogError ("QA request talk session failed: " + exp.ToString ());
+        }
+    }
+
     private bool CanMakeRequest ()
     {
         return (swrve != null && Logging);
