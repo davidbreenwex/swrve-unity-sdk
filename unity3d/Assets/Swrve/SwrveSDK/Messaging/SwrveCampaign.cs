@@ -65,6 +65,14 @@ public class SwrveCampaign
             this.State.Next = value;
         }
     }
+    public DateTime showMessagesAfterDelay {
+        get {
+            return this.State.ShowMessagesAfterDelay;
+        }
+        set {
+            this.State.ShowMessagesAfterDelay = value;
+        }
+    }
 
     /// <summary>
     /// Indicates if the campaign serves messages randomly or using round robin.
@@ -79,14 +87,6 @@ public class SwrveCampaign
     protected readonly DateTime swrveInitialisedTime;
     protected readonly string assetPath;
     protected DateTime showMessagesAfterLaunch;
-    protected DateTime showMessagesAfterDelay {
-        get {
-            return this.State.ShowMessagesAfterDelay;
-        }
-        set {
-            this.State.ShowMessagesAfterDelay = value;
-        }
-    }
     protected int minDelayBetweenMessage;
     protected int delayFirstMessage = DefaultDelayFirstMessage;
     protected int maxImpressions;
